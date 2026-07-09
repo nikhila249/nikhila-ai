@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+
+import Sidebar from "../components/Sidebar";
+import ChatHeader from "../components/ChatHeader";
+import MessageBubble from "../components/MessageBubble";
+import ChatInput from "../components/ChatInput";
+import TypingIndicator from "../components/TypingIndicator";
 
 type Message = {
   sender: "user" | "ai";
@@ -18,17 +24,27 @@ export default function ChatPage() {
     },
   ]);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
+
   async function sendMessage() {
     if (!message.trim() || loading) return;
 
-    const userMessage = {
-      sender: "user" as const,
-      text: message,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-
     const currentMessage = message;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "user",
+        text: currentMessage,
+      },
+    ]);
+
     setMessage("");
     setLoading(true);
 
@@ -53,6 +69,8 @@ export default function ChatPage() {
         },
       ]);
     } catch (error) {
+      console.error(error);
+
       setMessages((prev) => [
         ...prev,
         {
@@ -60,73 +78,38 @@ export default function ChatPage() {
           text: "❌ Something went wrong.",
         },
       ]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white">
-      <div className="w-72 border-r border-zinc-800 p-6">
-        <h1 className="text-3xl font-bold">Nikhila AI</h1>
+    <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
+      <Sidebar />
 
-        <div className="mt-10 space-y-5 text-lg">
-          <p>Dashboard</p>
-          <p className="text-blue-400">Chat</p>
-          <p>Profile</p>
-          <p>Settings</p>
-        </div>
-      </div>
+      <div className="flex flex-1 flex-col">
+        <ChatHeader />
 
-      <div className="flex-1 flex flex-col">
-        <div className="border-b border-zinc-800 p-6">
-          <h2 className="text-3xl font-bold">
-            Chat with Nikhila AI
-          </h2>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-8 space-y-5">
+        <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {messages.map((msg, index) => (
-            <div
+            <MessageBubble
               key={index}
-              className={`max-w-2xl rounded-xl px-5 py-4 ${
-                msg.sender === "user"
-                  ? "bg-blue-600 ml-auto"
-                  : "bg-zinc-800"
-              }`}
-            >
-              {msg.text}
-            </div>
+              sender={msg.sender}
+              text={msg.text}
+            />
           ))}
 
-          {loading && (
-            <div className="bg-zinc-800 rounded-xl px-5 py-4 max-w-xs">
-              Thinking...
-            </div>
-          )}
+          {loading && <TypingIndicator />}
+
+          <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t border-zinc-800 p-6">
-          <div className="flex gap-4">
-            <input
-              className="flex-1 rounded-xl bg-zinc-800 px-5 py-4 outline-none"
-              placeholder="Ask me anything..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") sendMessage();
-              }}
-            />
-
-            <button
-              onClick={sendMessage}
-              disabled={loading}
-              className="bg-blue-600 px-8 rounded-xl"
-            >
-              Send
-            </button>
-          </div>
-        </div>
+        <ChatInput
+          message={message}
+          setMessage={setMessage}
+          sendMessage={sendMessage}
+          loading={loading}
+        />
       </div>
     </div>
   );
