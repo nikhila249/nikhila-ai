@@ -14,8 +14,6 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // ⭐ Current chat
   const [chatId, setChatId] = useState<string | null>(null);
 
   async function sendMessage() {
@@ -47,7 +45,6 @@ export default function ChatPage() {
 
       const data = await res.json();
 
-      // Save chat id after first message
       if (!chatId && data.chatId) {
         setChatId(data.chatId);
       }
@@ -75,9 +72,15 @@ export default function ChatPage() {
     setLoading(false);
   }
 
+  function newChat() {
+    setMessages([]);
+    setChatId(null);
+    setMessage("");
+  }
+
   return (
     <div className="flex h-screen bg-black text-white">
-      <Sidebar />
+      <Sidebar onNewChat={newChat} />
 
       <main className="flex flex-1 flex-col">
         <div className="flex-1 overflow-y-auto p-8 space-y-6">

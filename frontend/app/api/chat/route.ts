@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Use existing chat if available
+    // Find existing chat
     let chat = null;
 
     if (chatId) {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Otherwise create a new chat
+    // Create new chat if needed
     if (!chat) {
       chat = await prisma.chat.create({
         data: {
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Save user message
+    // Save user's message
     await prisma.message.create({
       data: {
         role: "user",
@@ -56,19 +56,29 @@ export async function POST(request: Request) {
       },
     });
 
-    // Get AI response
+    // Fetch full conversation history
+    const previousMessages = await prisma.message.findMany({
+      where: {
+        chatId: chat.id,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    // Ask Groq with conversation history
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
           content:
-            "You are Nikhila AI, a friendly and intelligent AI assistant.",
+            "You are Nikhila AI, a friendly, intelligent personal AI assistant. Remember the conversation and answer naturally based on previous messages.",
         },
-        {
-          role: "user",
-          content: message,
-        },
+        ...previousMessages.map((msg) => ({
+          role: msg.role as "user" | "assistant",
+          content: msg.content,
+        })),
       ],
     });
 

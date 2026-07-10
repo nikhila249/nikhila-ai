@@ -14,7 +14,11 @@ interface Chat {
   title: string;
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  onNewChat: () => void;
+}
+
+export default function Sidebar({ onNewChat }: SidebarProps) {
   const [chats, setChats] = useState<Chat[]>([]);
 
   useEffect(() => {
@@ -29,7 +33,7 @@ export default function Sidebar() {
         const data = await res.json();
         setChats(data);
       } catch (error) {
-        console.error("Error loading chats:", error);
+        console.error(error);
       }
     }
 
@@ -38,6 +42,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+
       {/* Logo */}
       <div className="p-6 border-b border-zinc-800">
         <h1 className="text-3xl font-bold text-white">
@@ -47,7 +52,10 @@ export default function Sidebar() {
 
       {/* New Chat */}
       <div className="p-5">
-        <button className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition py-3 font-semibold">
+        <button
+          onClick={onNewChat}
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition py-3 font-semibold"
+        >
           <Plus size={18} />
           New Chat
         </button>
@@ -55,6 +63,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="px-4 space-y-2">
+
         <button className="flex items-center gap-3 w-full rounded-xl px-4 py-3 hover:bg-zinc-800 transition">
           <LayoutDashboard size={20} />
           Dashboard
@@ -74,6 +83,7 @@ export default function Sidebar() {
           <Settings size={20} />
           Settings
         </button>
+
       </nav>
 
       {/* Recent Chats */}
@@ -105,6 +115,7 @@ export default function Sidebar() {
       <div className="border-t border-zinc-800 p-5 text-sm text-zinc-500">
         Nikhila AI v1.0
       </div>
+
     </aside>
   );
 }
