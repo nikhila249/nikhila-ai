@@ -1,50 +1,35 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-
+import { useState } from "react";
 import Sidebar from "../components/Sidebar";
-import ChatHeader from "../components/ChatHeader";
-import MessageBubble from "../components/MessageBubble";
 import ChatInput from "../components/ChatInput";
-import TypingIndicator from "../components/TypingIndicator";
 
-type Message = {
-  sender: "user" | "ai";
-  text: string;
-};
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
 
 export default function ChatPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: "ai",
-      text: "👋 Hi Nikhila! I'm your personal AI assistant. How can I help you today?",
-    },
-  ]);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
-  }, [messages, loading]);
+  // ⭐ Current chat
+  const [chatId, setChatId] = useState<string | null>(null);
 
   async function sendMessage() {
     if (!message.trim() || loading) return;
 
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: message,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+
     const currentMessage = message;
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        sender: "user",
-        text: currentMessage,
-      },
-    ]);
-
     setMessage("");
     setLoading(true);
 
@@ -56,52 +41,78 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           message: currentMessage,
+          chatId,
         }),
       });
 
       const data = await res.json();
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "ai",
-          text: data.reply,
-        },
-      ]);
+      // Save chat id after first message
+      if (!chatId && data.chatId) {
+        setChatId(data.chatId);
+      }
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: data.reply,
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error(error);
 
       setMessages((prev) => [
         ...prev,
         {
-          sender: "ai",
-          text: "❌ Something went wrong.",
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: "Something went wrong.",
         },
       ]);
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   }
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
+    <div className="flex h-screen bg-black text-white">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col">
-        <ChatHeader />
-
+      <main className="flex flex-1 flex-col">
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
-          {messages.map((msg, index) => (
-            <MessageBubble
-              key={index}
-              sender={msg.sender}
-              text={msg.text}
-            />
-          ))}
+          {messages.length === 0 ? (
+            <div className="text-center mt-32">
+              <h1 className="text-5xl font-bold mb-4">
+                👋 Hi Nikhila!
+              </h1>
 
-          {loading && <TypingIndicator />}
-
-          <div ref={messagesEndRef} />
+              <p className="text-zinc-400 text-lg">
+                Your personal AI assistant is ready.
+              </p>
+            </div>
+          ) : (
+            messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={
+                  msg.role === "user"
+                    ? "flex justify-end"
+                    : "flex justify-start"
+                }
+              >
+                <div
+                  className={
+                    msg.role === "user"
+                      ? "bg-blue-600 rounded-2xl px-5 py-3 max-w-2xl"
+                      : "bg-zinc-800 rounded-2xl px-5 py-3 max-w-2xl"
+                  }
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         <ChatInput
@@ -110,7 +121,7 @@ export default function ChatPage() {
           sendMessage={sendMessage}
           loading={loading}
         />
-      </div>
+      </main>
     </div>
   );
 }

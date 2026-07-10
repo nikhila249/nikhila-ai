@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Plus,
   MessageSquare,
@@ -8,10 +9,35 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
+interface Chat {
+  id: string;
+  title: string;
+}
+
 export default function Sidebar() {
+  const [chats, setChats] = useState<Chat[]>([]);
+
+  useEffect(() => {
+    async function loadChats() {
+      try {
+        const res = await fetch("/api/chats");
+
+        if (!res.ok) {
+          throw new Error("Failed to load chats");
+        }
+
+        const data = await res.json();
+        setChats(data);
+      } catch (error) {
+        console.error("Error loading chats:", error);
+      }
+    }
+
+    loadChats();
+  }, []);
+
   return (
     <aside className="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col">
-
       {/* Logo */}
       <div className="p-6 border-b border-zinc-800">
         <h1 className="text-3xl font-bold text-white">
@@ -29,7 +55,6 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="px-4 space-y-2">
-
         <button className="flex items-center gap-3 w-full rounded-xl px-4 py-3 hover:bg-zinc-800 transition">
           <LayoutDashboard size={20} />
           Dashboard
@@ -49,29 +74,30 @@ export default function Sidebar() {
           <Settings size={20} />
           Settings
         </button>
-
       </nav>
 
-      {/* Chat History Placeholder */}
+      {/* Recent Chats */}
       <div className="flex-1 px-4 mt-8 overflow-y-auto">
         <h2 className="text-sm uppercase text-zinc-500 mb-4">
           Recent Chats
         </h2>
 
         <div className="space-y-2">
-
-          <div className="rounded-lg bg-zinc-800 px-4 py-3 cursor-pointer hover:bg-zinc-700">
-            Startup Ideas
-          </div>
-
-          <div className="rounded-lg bg-zinc-800 px-4 py-3 cursor-pointer hover:bg-zinc-700">
-            Resume Builder
-          </div>
-
-          <div className="rounded-lg bg-zinc-800 px-4 py-3 cursor-pointer hover:bg-zinc-700">
-            Fitness Plan
-          </div>
-
+          {chats.length === 0 ? (
+            <p className="text-zinc-500 text-sm">
+              No chats yet.
+            </p>
+          ) : (
+            chats.map((chat) => (
+              <a
+                key={chat.id}
+                href={`/chat/${chat.id}`}
+                className="block rounded-lg bg-zinc-800 px-4 py-3 hover:bg-zinc-700 transition"
+              >
+                {chat.title}
+              </a>
+            ))
+          )}
         </div>
       </div>
 
@@ -79,7 +105,6 @@ export default function Sidebar() {
       <div className="border-t border-zinc-800 p-5 text-sm text-zinc-500">
         Nikhila AI v1.0
       </div>
-
     </aside>
   );
 }

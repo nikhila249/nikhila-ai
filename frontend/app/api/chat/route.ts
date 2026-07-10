@@ -3,36 +3,67 @@ import Groq from "groq-sdk";
 import { prisma } from "@/lib/prisma";
 
 const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
+  apiKey: process.env.GROQ_API_KEY!,
 });
 
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json();
+    const { message, chatId } = await request.json();
 
     // Demo user
     let user = await prisma.user.findUnique({
       where: {
-        email: "nikhila@example.com",
+        email: "demo@nikhila.ai",
       },
     });
 
     if (!user) {
       user = await prisma.user.create({
         data: {
-          name: "Nikhila",
-          email: "nikhila@example.com",
+          name: "Demo User",
+          email: "demo@nikhila.ai",
         },
       });
     }
 
+    // Use existing chat if available
+    let chat = null;
+
+    if (chatId) {
+      chat = await prisma.chat.findUnique({
+        where: {
+          id: chatId,
+        },
+      });
+    }
+
+    // Otherwise create a new chat
+    if (!chat) {
+      chat = await prisma.chat.create({
+        data: {
+          title: message.slice(0, 30),
+          userId: user.id,
+        },
+      });
+    }
+
+    // Save user message
+    await prisma.message.create({
+      data: {
+        role: "user",
+        content: message,
+        chatId: chat.id,
+      },
+    });
+
+    // Get AI response
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
         {
           role: "system",
           content:
-            "You are Nikhila AI, a friendly intelligent AI assistant.",
+            "You are Nikhila AI, a friendly and intelligent AI assistant.",
         },
         {
           role: "user",
@@ -41,20 +72,20 @@ export async function POST(request: Request) {
       ],
     });
 
-    const reply =
-      completion.choices[0].message.content ??
-      "Sorry, I couldn't generate a response.";
+    const reply = completion.choices[0].message.content ?? "";
 
-    await prisma.chat.create({
+    // Save AI response
+    await prisma.message.create({
       data: {
-        message,
-        reply,
-        userId: user.id,
+        role: "assistant",
+        content: reply,
+        chatId: chat.id,
       },
     });
 
     return NextResponse.json({
       reply,
+      chatId: chat.id,
     });
   } catch (error) {
     console.error(error);
@@ -63,9 +94,7 @@ export async function POST(request: Request) {
       {
         reply: "Something went wrong.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
