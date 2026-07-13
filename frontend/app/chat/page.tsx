@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatInput from "../components/ChatInput";
 import MessageRenderer from "../components/MessageRenderer";
@@ -16,6 +16,16 @@ export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [chatId, setChatId] = useState<string | null>(null);
+
+  // Auto-scroll target
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Automatically scroll to the latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
 
   async function sendMessage() {
     if (!message.trim() || loading) return;
@@ -125,6 +135,9 @@ export default function ChatPage() {
                   </div>
                 </div>
               )}
+
+              {/* Auto-scroll target */}
+              <div ref={messagesEndRef} />
             </>
           )}
         </div>
