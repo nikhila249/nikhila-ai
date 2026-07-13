@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatInput from "../components/ChatInput";
 import MessageRenderer from "../components/MessageRenderer";
+import MessageActions from "../components/MessageActions";
 
 interface Message {
   id: string;
@@ -124,6 +125,11 @@ export default function ChatPage() {
                     }
                   >
                     <MessageRenderer content={msg.content} />
+
+                    {/* Copy button only for AI messages */}
+                    {msg.role === "assistant" && (
+                      <MessageActions content={msg.content} />
+                    )}
                   </div>
                 </div>
               ))}
