@@ -68,9 +68,9 @@ export default function ChatPage() {
           content: "Something went wrong.",
         },
       ]);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   function newChat() {
@@ -96,26 +96,36 @@ export default function ChatPage() {
               </p>
             </div>
           ) : (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={
-                  msg.role === "user"
-                    ? "flex justify-end"
-                    : "flex justify-start"
-                }
-              >
+            <>
+              {messages.map((msg) => (
                 <div
+                  key={msg.id}
                   className={
                     msg.role === "user"
-                      ? "bg-blue-600 rounded-2xl px-5 py-3 max-w-2xl"
-                      : "bg-zinc-800 rounded-2xl px-5 py-3 max-w-2xl"
+                      ? "flex justify-end"
+                      : "flex justify-start"
                   }
                 >
-                  <MessageRenderer content={msg.content} />
+                  <div
+                    className={
+                      msg.role === "user"
+                        ? "bg-blue-600 rounded-2xl px-5 py-3 max-w-2xl"
+                        : "bg-zinc-800 rounded-2xl px-5 py-3 max-w-2xl"
+                    }
+                  >
+                    <MessageRenderer content={msg.content} />
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-zinc-800 rounded-2xl px-5 py-3 animate-pulse">
+                    🤖 Nikhila AI is thinking...
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
