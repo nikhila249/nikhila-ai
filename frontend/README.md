@@ -1,36 +1,223 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🤖 Nikhila AI
 
-## Getting Started
+A modern ChatGPT-inspired AI assistant built using **Next.js**, **TypeScript**, **PostgreSQL**, **Prisma**, and **Groq AI**. The application provides a fast, interactive chat experience with persistent conversations and intelligent memory.
 
-First, run the development server:
+---
+
+## 🚀 Features
+
+- 🤖 AI-powered chatbot using Groq LLM
+- 💬 Real-time conversational interface
+- 🧠 Conversation memory
+- 📚 Persistent chat history
+- 🆕 Create new conversations
+- 📂 Dynamic sidebar with recent chats
+- 💾 PostgreSQL database integration
+- ⚡ Prisma ORM for database management
+- 🎨 Modern responsive UI
+- 🌙 Dark mode interface
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+
+### Backend
+- Next.js API Routes
+- Groq SDK
+
+### Database
+- PostgreSQL
+- Prisma ORM
+
+### Tools
+- Git
+- GitHub
+- VS Code
+
+---
+
+## 📂 Project Structure
+
+```
+frontend/
+│
+├── app/
+│   ├── api/
+│   ├── chat/
+│   └── components/
+│
+├── lib/
+├── prisma/
+├── public/
+├── hooks/
+├── services/
+├── types/
+│
+├── package.json
+└── README.md
+```
+
+---
+
+## ⚙️ Installation
+
+### Clone the repository
+
+```bash
+git clone https://github.com/nikhila249/nikhila-ai.git
+```
+
+### Navigate to the project
+
+```bash
+cd nikhila-ai/frontend
+```
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+## 🔑 Environment Variables
+
+Create a `.env` file in the root directory.
+
+```env
+DATABASE_URL="your_postgresql_database_url"
+
+GROQ_API_KEY="your_groq_api_key"
+```
+
+---
+
+## 🗄️ Database Setup
+
+Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+Run database migrations
+
+```bash
+npx prisma migrate dev
+```
+
+Open Prisma Studio
+
+```bash
+npx prisma studio
+```
+
+---
+
+## ▶️ Running the Application
+
+Start the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open your browser and visit
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+http://localhost:3000/chat
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📸 Screenshots
 
-To learn more about Next.js, take a look at the following resources:
+## 📸 Screenshots
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 🏠 Home Page
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+![Home Page](public/screenshots/home.png)
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 💬 Chat Interface
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![Chat Interface](public/screenshots/chat.png)
+
+---
+
+### 🧠 Conversation Memory
+
+![Conversation Memory](public/screenshots/memory.png)
+
+---
+
+### 📂 Sidebar
+
+![Sidebar](public/screenshots/sidebar.png)
+
+## 🎯 Current Features
+
+- ✅ AI Chat
+- ✅ Conversation Memory
+- ✅ Persistent Chat History
+- ✅ Continue Previous Conversations
+- ✅ New Chat
+- ✅ PostgreSQL Integration
+- ✅ Prisma ORM
+- ✅ Responsive UI
+
+---
+
+## 🚀 Upcoming Features
+
+- 🌊 Streaming AI Responses
+- 📝 Markdown Support
+- 📋 Copy Messages
+- 📄 File Upload (PDF, DOCX)
+- 👁️ Vision AI
+- 🎤 Voice Assistant
+- 🔐 Authentication
+- 🌍 Web Search
+- ☁️ Vercel Deployment
+- 🤖 AI Agents
+
+---
+
+## 📖 What I Learned
+
+This project helped me gain practical experience with:
+
+- Building full-stack applications using Next.js
+- Designing relational databases with PostgreSQL
+- Using Prisma ORM
+- Integrating Large Language Models (LLMs)
+- Managing application state in React
+- Creating REST APIs
+- Implementing persistent conversation memory
+- Version control using Git & GitHub
+
+---
+
+## 👩‍💻 Author
+
+**Nikhila Ravipati**
+
+Computer Science Engineering Student | Full-Stack Developer | AI Enthusiast
+
+GitHub: https://github.com/nikhila249
+
+
+
+---
+
+## ⭐ Support
+
+If you found this project helpful, consider giving it a ⭐ on GitHub! 

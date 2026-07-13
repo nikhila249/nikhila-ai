@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import ChatInput from "../components/ChatInput";
+import MessageRenderer from "../components/MessageRenderer";
 
 interface Message {
   id: string;
@@ -111,7 +112,7 @@ export default function ChatPage() {
                       : "bg-zinc-800 rounded-2xl px-5 py-3 max-w-2xl"
                   }
                 >
-                  {msg.content}
+                  <MessageRenderer content={msg.content} />
                 </div>
               </div>
             ))
