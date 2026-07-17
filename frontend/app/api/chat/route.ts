@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
-import Groq from "groq-sdk";
+import { streamText } from "ai";
+import { groq } from "@/lib/groq";
 import { prisma } from "@/lib/prisma";
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY!,
-});
-
 export async function POST(request: Request) {
   try {
     const { message, chatId } = await request.json();
