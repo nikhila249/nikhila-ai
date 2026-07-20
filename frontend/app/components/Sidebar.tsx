@@ -7,8 +7,10 @@ import {
   User,
   Settings,
   LayoutDashboard,
-} from "lucide-react";
-
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react"; 
 interface Chat {
   id: string;
   title: string;
@@ -20,6 +22,7 @@ interface SidebarProps {
 
 export default function Sidebar({ onNewChat }: SidebarProps) {
   const [chats, setChats] = useState<Chat[]>([]);
+  const [openMenu, setOpenMenu] = useState<string | null>(null); 
 
   useEffect(() => {
     async function loadChats() {
@@ -98,15 +101,79 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
               No chats yet.
             </p>
           ) : (
-            chats.map((chat) => (
-              <a
-                key={chat.id}
-                href={`/chat/${chat.id}`}
-                className="block rounded-lg bg-zinc-800 px-4 py-3 hover:bg-zinc-700 transition"
-              >
-                {chat.title}
-              </a>
-            ))
+           chats.map((chat) => (
+  <div
+    key={chat.id}
+    className="relative group rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
+  >
+    <a
+      href={`/chat/${chat.id}`}
+      className="block px-4 py-3 pr-12"
+    >
+      {chat.title}
+    </a>
+
+    <button
+      onClick={() =>
+        setOpenMenu(openMenu === chat.id ? null : chat.id)
+      }
+      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-zinc-600 opacity-0 group-hover:opacity-100 transition"
+    >
+      <MoreHorizontal size={18} />
+    </button>
+
+    {openMenu === chat.id && (
+      <div className="absolute right-2 mt-1 w-36 rounded-lg bg-zinc-900 border border-zinc-700 shadow-lg z-10">
+       <button
+  onClick={async () => {
+    const newTitle = prompt("Enter a new chat title:", chat.title);
+
+    if (!newTitle || newTitle.trim() === "") return;
+
+    try {
+      const res = await fetch("/api/chats/rename", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: chat.id,
+          title: newTitle,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Rename failed");
+      }
+
+      setChats((prev) =>
+        prev.map((c) =>
+          c.id === chat.id
+            ? { ...c, title: newTitle }
+            : c
+        )
+      );
+
+      setOpenMenu(null);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to rename chat.");
+    }
+  }}
+  className="flex items-center gap-2 w-full px-3 py-2 hover:bg-zinc-800"
+>
+  <Pencil size={16} />
+  Rename
+</button> 
+
+        <button className="flex items-center gap-2 w-full px-3 py-2 text-red-400 hover:bg-zinc-800">
+          <Trash2 size={16} />
+          Delete
+        </button>
+      </div>
+    )}
+  </div>
+)) 
           )}
         </div>
       </div>
