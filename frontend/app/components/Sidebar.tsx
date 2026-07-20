@@ -23,6 +23,10 @@ interface SidebarProps {
 export default function Sidebar({ onNewChat }: SidebarProps) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [openMenu, setOpenMenu] = useState<string | null>(null); 
+  const [search, setSearch] = useState(""); 
+  const filteredChats = chats.filter((chat) =>
+  chat.title.toLowerCase().includes(search.toLowerCase())
+); 
 
   useEffect(() => {
     async function loadChats() {
@@ -91,17 +95,27 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
 
       {/* Recent Chats */}
       <div className="flex-1 px-4 mt-8 overflow-y-auto">
+        <input
+  type="text"
+  placeholder="Search chats..."
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  className="w-full mb-4 rounded-lg bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+/> 
         <h2 className="text-sm uppercase text-zinc-500 mb-4">
           Recent Chats
         </h2>
 
         <div className="space-y-2">
-          {chats.length === 0 ? (
+         {filteredChats.length === 0 ? ( 
             <p className="text-zinc-500 text-sm">
-              No chats yet.
+             {search
+  ? "No matching chats found."
+  : "No chats yet."}
+  
             </p>
           ) : (
-           chats.map((chat) => (
+         filteredChats.map((chat) => ( 
   <div
     key={chat.id}
     className="relative group rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
@@ -203,7 +217,7 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
 >
   <Trash2 size={16} />
   Delete
-</button> 
+</button>  
       </div>
     )}
   </div>
