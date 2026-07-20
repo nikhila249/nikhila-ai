@@ -166,10 +166,44 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
   Rename
 </button> 
 
-        <button className="flex items-center gap-2 w-full px-3 py-2 text-red-400 hover:bg-zinc-800">
-          <Trash2 size={16} />
-          Delete
-        </button>
+       <button
+  onClick={async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this chat?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch("/api/chats/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: chat.id,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Delete failed");
+      }
+
+      setChats((prev) => prev.filter((c) => c.id !== chat.id));
+
+      setOpenMenu(null);
+
+      alert("Chat deleted successfully.");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete chat.");
+    }
+  }}
+  className="flex items-center gap-2 w-full px-3 py-2 text-red-400 hover:bg-zinc-800"
+>
+  <Trash2 size={16} />
+  Delete
+</button> 
       </div>
     )}
   </div>
