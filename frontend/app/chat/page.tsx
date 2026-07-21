@@ -33,7 +33,7 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch("/api/chat/stream", { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,19 +44,46 @@ export default function ChatPage() {
         }),
       });
 
-      const data = await res.json();
+     const reader = res.body?.getReader();
 
-      if (!chatId && data.chatId) {
-        setChatId(data.chatId);
-      }
+if (!reader) {
+  throw new Error("No response body");
+}
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.reply,
-      };
+const decoder = new TextDecoder();
 
-      setMessages((prev) => [...prev, aiMessage]);
+const aiMessageId = (Date.now() + 1).toString();
+
+setMessages((prev) => [
+  ...prev,
+  {
+    id: aiMessageId,
+    role: "assistant",
+    content: "",
+  },
+]);
+
+let reply = "";
+
+while (true) {
+  const { done, value } = await reader.read();
+
+  if (done) break;
+
+  reply += decoder.decode(value, { stream: true });
+
+  setMessages((prev) =>
+    prev.map((msg) =>
+      msg.id === aiMessageId
+        ? {
+            ...msg,
+            content: reply,
+          }
+        : msg
+    )
+  );
+} 
+      
     } catch (error) {
       console.error(error);
 
@@ -83,7 +110,7 @@ export default function ChatPage() {
     <div className="flex h-screen bg-black text-white">
       <Sidebar onNewChat={newChat} />
 
-      <main className="flex flex-1 flex-col">
+     <main className="flex flex-1 flex-col"> 
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {messages.length === 0 ? (
             <div className="text-center mt-32">

@@ -30,15 +30,30 @@ export async function POST(request: Request) {
       ],
     });
 
-    let reply = "";
+    const encoder = new TextEncoder();
 
-    for await (const chunk of completion) {
-      const content = chunk.choices[0]?.delta?.content || "";
-      reply += content;
-    }
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of completion) {
+            const content = chunk.choices[0]?.delta?.content || "";
 
-    return NextResponse.json({
-      reply,
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+          }
+
+          controller.close();
+        } catch (err) {
+          controller.error(err);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+      },
     });
   } catch (error) {
     console.error(error);
@@ -51,3 +66,5 @@ export async function POST(request: Request) {
     );
   }
 } 
+
+   
