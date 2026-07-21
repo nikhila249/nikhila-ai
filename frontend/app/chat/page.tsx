@@ -1,15 +1,16 @@
 "use client";
-
+import MessageActions from "../components/MessageActions"; 
 import { useState, useRef, useEffect } from "react"; 
 import Sidebar from "../components/Sidebar";
 import ChatInput from "../components/ChatInput";
 import MessageRenderer from "../components/MessageRenderer";
 
 interface Message {
-  id: string;
+  id: string; 
   role: "user" | "assistant";
   content: string;
-}
+  prompt?: string;
+} 
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -24,20 +25,25 @@ export default function ChatPage() {
   });
 }, [messages]); 
 
-  async function sendMessage() {
-    if (!message.trim() || loading) return;
+  async function sendMessage(prompt?: string) {
+  const text = prompt ?? message;
+
+  if (!text.trim() || loading) return; 
+    
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
-      content: message,
+      content: text, 
     };
     
 
     setMessages((prev) => [...prev, userMessage]);
 
-    const currentMessage = message;
-    setMessage("");
+   const currentMessage = text; 
+   if (!prompt) {
+  setMessage("");
+} 
     setLoading(true);
 
     try {
@@ -71,6 +77,7 @@ setMessages((prev) => [
     id: aiMessageId,
     role: "assistant",
     content: "",
+     prompt: currentMessage, 
   },
 ]);
 
@@ -119,6 +126,13 @@ while (true) {
   abortControllerRef.current?.abort();
   setLoading(false);
 } 
+async function regenerateResponse(prompt?: string) {
+  console.log("Prompt:", prompt);
+
+  if (!prompt) return;
+
+  await sendMessage(prompt);
+} 
 
   function newChat() {
     setMessages([]);
@@ -144,26 +158,33 @@ while (true) {
             </div>
           ) : (
             <>
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={
-                    msg.role === "user"
-                      ? "flex justify-end"
-                      : "flex justify-start"
-                  }
-                >
-                  <div
-                    className={
-                      msg.role === "user"
-                        ? "bg-blue-600 rounded-2xl px-5 py-3 max-w-2xl"
-                        : "bg-zinc-800 rounded-2xl px-5 py-3 max-w-2xl"
-                    }
-                  >
-                    <MessageRenderer content={msg.content} />
-                  </div>
-                </div>
-              ))}
+             {messages.map((msg) => (
+  <div
+    key={msg.id}
+    className={
+      msg.role === "user"
+        ? "flex justify-end"
+        : "flex justify-start"
+    }
+  >
+    <div
+      className={
+        msg.role === "user"
+          ? "bg-blue-600 rounded-2xl px-5 py-3 max-w-2xl"
+          : "bg-zinc-800 rounded-2xl px-5 py-3 max-w-2xl"
+      }
+    >
+      <MessageRenderer content={msg.content} />
+
+      {msg.role === "assistant" && (
+        <MessageActions
+          content={msg.content}
+          onRegenerate={() => regenerateResponse(msg.prompt)}
+        />
+      )}
+    </div>
+  </div>
+))} 
               <div ref={messagesEndRef} /> 
 
               {loading && (
