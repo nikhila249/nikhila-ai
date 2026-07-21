@@ -6,15 +6,17 @@ type Props = {
   message: string;
   setMessage: (value: string) => void;
   sendMessage: () => void;
+  stopGeneration: () => void;
   loading: boolean;
-};
+}; 
 
 export default function ChatInput({
   message,
   setMessage,
   sendMessage,
+  stopGeneration,
   loading,
-}: Props) {
+}: Props) { 
   return (
     <div className="border-t border-zinc-800 bg-zinc-950 p-6">
       <div className="flex gap-4">
@@ -28,13 +30,21 @@ export default function ChatInput({
           className="flex-1 rounded-2xl bg-zinc-900 border border-zinc-700 px-5 py-4 text-white outline-none focus:border-blue-500 transition"
         />
 
-        <button
-          onClick={sendMessage}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 transition px-6 rounded-2xl flex items-center justify-center disabled:opacity-50"
-        >
-          <SendHorizonal size={22} />
-        </button>
+       {loading ? (
+  <button
+    onClick={stopGeneration}
+    className="bg-red-600 hover:bg-red-700 transition px-6 rounded-2xl text-white font-medium"
+  >
+    Stop
+  </button>
+) : (
+  <button
+    onClick={sendMessage}
+    className="bg-blue-600 hover:bg-blue-700 transition px-6 rounded-2xl flex items-center justify-center"
+  >
+    <SendHorizonal size={22} />
+  </button>
+)} 
       </div>
     </div>
   );

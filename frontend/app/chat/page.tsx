@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react"; 
 import Sidebar from "../components/Sidebar";
 import ChatInput from "../components/ChatInput";
 import MessageRenderer from "../components/MessageRenderer";
@@ -16,6 +16,13 @@ export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [chatId, setChatId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null); 
+  const abortControllerRef = useRef<AbortController | null>(null); 
+  useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({
+    behavior: "smooth",
+  });
+}, [messages]); 
 
   async function sendMessage() {
     if (!message.trim() || loading) return;
@@ -25,6 +32,7 @@ export default function ChatPage() {
       role: "user",
       content: message,
     };
+    
 
     setMessages((prev) => [...prev, userMessage]);
 
@@ -33,11 +41,14 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
+      const controller = new AbortController();
+abortControllerRef.current = controller; 
       const res = await fetch("/api/chat/stream", { 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+          signal: controller.signal, 
         body: JSON.stringify({
           message: currentMessage,
           chatId,
@@ -84,21 +95,30 @@ while (true) {
   );
 } 
       
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+  if (error.name === "AbortError") {
+    console.log("Generation stopped");
+  } else {
+    console.error(error);
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: "Something went wrong.",
-        },
-      ]);
-    } finally {
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Something went wrong.",
+      },
+    ]);
+  }
+} 
+     finally {
       setLoading(false);
     }
   }
+  function stopGeneration() {
+  abortControllerRef.current?.abort();
+  setLoading(false);
+} 
 
   function newChat() {
     setMessages([]);
@@ -144,6 +164,7 @@ while (true) {
                   </div>
                 </div>
               ))}
+              <div ref={messagesEndRef} /> 
 
               {loading && (
                 <div className="flex justify-start">
@@ -156,12 +177,13 @@ while (true) {
           )}
         </div>
 
-        <ChatInput
-          message={message}
-          setMessage={setMessage}
-          sendMessage={sendMessage}
-          loading={loading}
-        />
+      <ChatInput
+  message={message}
+  setMessage={setMessage}
+  sendMessage={sendMessage}
+  stopGeneration={stopGeneration}
+  loading={loading}
+/> 
       </main>
     </div>
   );
