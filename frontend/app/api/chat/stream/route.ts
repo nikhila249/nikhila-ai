@@ -35,6 +35,31 @@ console.log("Received message:", message);
     },
   });
 } 
+let previousMessages: {
+  role: "user" | "assistant";
+  content: string;
+}[] = [];
+
+if (chatId) {
+  const chat = await prisma.chat.findUnique({
+    where: {
+      id: chatId,
+    },
+    include: {
+      messages: {
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
+  });
+
+  previousMessages =
+    chat?.messages.map((msg) => ({
+      role: msg.role as "user" | "assistant",
+      content: msg.content,
+    })) ?? [];
+} 
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
@@ -44,10 +69,7 @@ console.log("Received message:", message);
           role: "system",
           content: "You are Nikhila AI.",
         },
-        {
-          role: "user",
-          content: message,
-        },
+        ...previousMessages, 
       ],
     });
 
