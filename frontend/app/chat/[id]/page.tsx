@@ -19,11 +19,12 @@ export default function ChatPage({
     async function loadChat() {
       const { id } = await params;
 
-      const res = await fetch(`/api/chats/${id}`);
+     const res = await fetch(`/api/chat/${id}`); 
 
       if (!res.ok) return;
 
       const data = await res.json();
+      console.log("API Response:", data); 
 
       setMessages(data.messages ?? []);
     }

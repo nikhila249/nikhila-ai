@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma"; 
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
@@ -13,7 +14,27 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json();
+   const { message, chatId } = await request.json(); 
+   console.log("Received chatId:", chatId);
+console.log("Received message:", message); 
+   if (chatId) {
+  await prisma.message.create({
+    data: {
+      role: "user",
+      content: message,
+      chatId,
+    },
+  });
+
+  await prisma.chat.update({
+    where: {
+      id: chatId,
+    },
+    data: {
+      updatedAt: new Date(),
+    },
+  });
+} 
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
@@ -32,23 +53,45 @@ export async function POST(request: Request) {
 
     const encoder = new TextEncoder();
 
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of completion) {
-            const content = chunk.choices[0]?.delta?.content || "";
+const stream = new ReadableStream({
+  async start(controller) {
+    try {
+      let fullResponse = "";
 
-            if (content) {
-              controller.enqueue(encoder.encode(content));
-            }
-          }
+      for await (const chunk of completion) {
+        const content = chunk.choices[0]?.delta?.content || "";
 
-          controller.close();
-        } catch (err) {
-          controller.error(err);
+        if (content) {
+          fullResponse += content;
+          controller.enqueue(encoder.encode(content));
         }
-      },
-    });
+      }
+
+      if (chatId && fullResponse) {
+        await prisma.message.create({
+          data: {
+            role: "assistant",
+            content: fullResponse,
+            chatId,
+          },
+        });
+
+        await prisma.chat.update({
+          where: {
+            id: chatId,
+          },
+          data: {
+            updatedAt: new Date(),
+          },
+        });
+      }
+
+      controller.close();
+    } catch (err) {
+      controller.error(err);
+    }
+  },
+}); 
 
     return new Response(stream, {
       headers: {

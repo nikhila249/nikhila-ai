@@ -18,9 +18,13 @@ interface Chat {
 
 interface SidebarProps {
   onNewChat: () => void;
-}
+  onSelectChat: (chatId: string) => void;
+} 
 
-export default function Sidebar({ onNewChat }: SidebarProps) {
+export default function Sidebar({
+  onNewChat,
+  onSelectChat,
+}: SidebarProps) { 
   const [chats, setChats] = useState<Chat[]>([]);
   const [openMenu, setOpenMenu] = useState<string | null>(null); 
   const [search, setSearch] = useState(""); 
@@ -120,12 +124,12 @@ export default function Sidebar({ onNewChat }: SidebarProps) {
     key={chat.id}
     className="relative group rounded-lg bg-zinc-800 hover:bg-zinc-700 transition"
   >
-    <a
-      href={`/chat/${chat.id}`}
-      className="block px-4 py-3 pr-12"
-    >
-      {chat.title}
-    </a>
+    <button
+  onClick={() => onSelectChat(chat.id)}
+  className="block w-full text-left px-4 py-3 pr-12"
+>
+  {chat.title}
+</button> 
 
     <button
       onClick={() =>

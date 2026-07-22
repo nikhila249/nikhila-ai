@@ -39,8 +39,25 @@ export default function ChatPage() {
     
 
     setMessages((prev) => [...prev, userMessage]);
+    let activeChatId = chatId;  
+    const currentMessage = text; 
+   if (!chatId) {
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: currentMessage.slice(0, 50),
+    }),
+  });
 
-   const currentMessage = text; 
+  const newChat = await response.json();
+
+ activeChatId = newChat.id;
+setChatId(newChat.id); 
+} 
+
    if (!prompt) {
   setMessage("");
 } 
@@ -57,7 +74,7 @@ abortControllerRef.current = controller;
           signal: controller.signal, 
         body: JSON.stringify({
           message: currentMessage,
-          chatId,
+          chatId: activeChatId, 
         }),
       });
 
@@ -134,6 +151,29 @@ async function regenerateResponse(prompt?: string) {
   await sendMessage(prompt);
 } 
 
+async function selectChat(id: string) {
+  try {
+    const res = await fetch(`/api/chat/${id}`);
+
+    if (!res.ok) {
+      throw new Error("Failed to load chat");
+    }
+
+    const data = await res.json();
+
+    setChatId(id);
+
+    setMessages(
+      data.messages.map((msg: any) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+      }))
+    );
+  } catch (error) {
+    console.error(error);
+  }
+} 
   function newChat() {
     setMessages([]);
     setChatId(null);
@@ -142,7 +182,10 @@ async function regenerateResponse(prompt?: string) {
 
   return (
     <div className="flex h-screen bg-black text-white">
-      <Sidebar onNewChat={newChat} />
+     <Sidebar
+  onNewChat={newChat}
+  onSelectChat={selectChat}
+/> 
 
      <main className="flex flex-1 flex-col"> 
         <div className="flex-1 overflow-y-auto p-8 space-y-6">

@@ -3,20 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email: "demo@nikhila.ai",
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json([]);
-    }
-
     const chats = await prisma.chat.findMany({
-      where: {
-        userId: user.id,
-      },
       orderBy: {
         updatedAt: "desc",
       },
@@ -32,4 +19,4 @@ export async function GET() {
     console.error(error);
     return NextResponse.json([], { status: 500 });
   }
-}
+} 
