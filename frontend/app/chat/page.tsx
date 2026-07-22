@@ -1,10 +1,10 @@
 "use client";
-import MessageActions from "../components/MessageActions"; 
-import { useState, useRef, useEffect } from "react"; 
-import Sidebar from "../components/Sidebar";
-import ChatInput from "../components/ChatInput";
-import MessageRenderer from "../components/MessageRenderer";
 
+import { useState, useRef, useEffect } from "react"; 
+import Sidebar from "../components/chat/Sidebar";
+import ChatInput from "../components/chat/ChatInput";
+import MessageRenderer from "../components/chat/MessageRenderer";
+import MessageActions from "../components/chat/MessageActions"; 
 interface Message {
   id: string; 
   role: "user" | "assistant";
@@ -47,9 +47,9 @@ export default function ChatPage() {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      title: currentMessage.slice(0, 50),
-    }),
+   body: JSON.stringify({
+  title: currentMessage.slice(0, 50),
+}), 
   });
 
   const newChat = await response.json();
@@ -98,7 +98,8 @@ setMessages((prev) => [
   },
 ]);
 
-let reply = "";
+let reply = ""; 
+let titleGenerated = false; 
 
 while (true) {
   const { done, value } = await reader.read();
@@ -117,6 +118,71 @@ while (true) {
         : msg
     )
   );
+}  
+if (!titleGenerated && activeChatId) {
+  titleGenerated = true;
+
+  try {
+    const titleRes = await fetch("/api/chat/generate-title", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: currentMessage,
+        response: reply,
+      }),
+    });
+
+    if (titleRes.ok) {
+      const { title } = await titleRes.json();
+
+      await fetch("/api/chats/rename", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: activeChatId,
+          title,
+        }),
+      });
+    }
+  } catch (error) {
+    console.error("Failed to generate title:", error);
+  }
+} 
+if (!titleGenerated && activeChatId) {
+  titleGenerated = true;
+
+  try {
+    const titleRes = await fetch("/api/chat/generate-title", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: currentMessage,
+      }),
+    });
+
+    if (titleRes.ok) {
+      const { title } = await titleRes.json();
+
+      await fetch("/api/chats/rename", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: activeChatId,
+          title,
+        }),
+      });
+    }
+  } catch (error) {
+    console.error("Failed to generate title:", error);
+  }
 } 
       
     } catch (error: any) {
